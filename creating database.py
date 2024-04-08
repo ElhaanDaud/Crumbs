@@ -1,5 +1,6 @@
 import mysql.connector as ms
-m=ms.connect(host="localhost", user='root', password='&Bushra.S.583')
+import creds
+m=ms.connect(host=creds.host, user=creds.user, password=creds.password) 
 mc=m.cursor()
 mc.execute('CREATE database Crumbs;')
 mc.execute('USE crumbs;')

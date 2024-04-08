@@ -1,5 +1,6 @@
 import mysql.connector as ms
-m=ms.connect(host="localhost", user='root', password='&Bushra.S.583', database='Crumbs')
+import creds 
+m=ms.connect(host=creds.host, user=creds.user, password=creds.password, database=creds.database) 
 mc=m.cursor()
 print("""
          ▄▀▀▀▄▄▄▄▄▄▄▀▀▀▄

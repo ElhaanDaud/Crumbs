@@ -4,7 +4,6 @@ from Manager import app as Manager_app
 from Customer import app as Customer_app
 import mysql.connector as ms
 import creds 
-import pandas as pd
 import random
 
 
@@ -53,29 +52,33 @@ class Crumbs:
 
         st.text("Continue As:")
 
-        col1, col2   = st.columns(2)
-
-    # Add a button to the first column
-        with col1:
-            button1 = st.button("Manager")
+        col1, col2   = st.columns([6,1])
 
     # Add a button to the second column
+        with col1:
+            button1 = st.button("Customer")
+
+    # Add a button to the first column
         with col2:
-            button2 = st.button("Customer")
+            button2 = st.button("Manager")
+
+    
         
         i=0
 
         if button1:
-            i=0
-        
-        elif button2:
             i=1
+
+        elif button2:
+            i=2
+        
+        
             
         with st.sidebar:
             app = option_menu(
                 menu_title='User',
-                options=['Manager','Customer'],
-                icons=['house-fill','person-circle'],
+                options=['Home','Customer','Manager',],
+                icons=['house-fill','person-lines-fill','person-circle'],
                 menu_icon='menu-app',  
                 default_index=i,
                 styles={"container":{
@@ -96,11 +99,22 @@ class Crumbs:
                         "background-color":"4a4a49",
                         },})
         
+        tidbits=['Enjoy the best of baking with crumbs!','Every flavour has a story to tell!','Count the memories not the calories!','We bet you will keep coming back!','A wonderful gift for your loved ones!','Celebrate with crumbs!']
+        niceday=['Hope you have a good day :)','Stay hydrated :)','Just in case no one has told you already... you are amazing :)','Be a rainbow in someones storm :)','Perfection is accepting your imperfections :)']
+        
+        if app == "Home ":
+            i=0
 
-        if app == "Manager" or button1:
-            Manager_app()
-        if app == "Customer" or button2:
+        if app == "Customer" or button1:
+            st.write(random.choice(tidbits))
             Customer_app()
+            
+
+        if app == "Manager" or button2:
+            st.write(random.choice(niceday))
+            Manager_app()
+            
+        
 
         
 

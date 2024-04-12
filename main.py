@@ -5,7 +5,7 @@ from Customer import app as Customer_app
 
 st.set_page_config(
     page_title="Crumbs",
-    page_icon="🙌"          
+    page_icon="🍪"          
     )
 
 class Crumbs:

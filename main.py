@@ -2,6 +2,15 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from Manager import app as Manager_app
 from Customer import app as Customer_app
+import mysql.connector as ms
+import creds 
+import pandas as pd
+import random
+
+
+
+m=ms.connect(host=creds.host, user=creds.user, password=creds.password, database=creds.database) 
+mc=m.cursor()
 
 st.set_page_config(
     page_title="Crumbs",
@@ -19,9 +28,32 @@ class Crumbs:
         })
 
     def run(self):
-        st.title('Main Page')
 
-        col1, col2 = st.columns(2)
+        st.markdown("<h1 style='text-align: center; color: white;'>🍪 CRUMBS 🍪</h1>", unsafe_allow_html=True)
+            
+        
+        st.text("""        
+        ...................................▄▀▀▀▄▄▄▄▄▄▄▀▀▀▄..................................    
+        .                                  █▒▒░░░░░░░░░▒▒█                                 .
+        .                                   █░░█░░░░░█░░█                                  .
+        .                                ▄▄  █░░░▀█▀░░░█  ▄▄                               .
+        .                               █░░█ ▀▄░░░░░░░▄▀ █░░█                              .
+        .                               █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█                             .
+        .                               █  ╦ ╦╔╗╦ ╔╗╔╗╔╦╗╔╗  █                             .
+        .                               █  ║║║╠ ║ ║ ║║║║║╠   █                             .
+        .                               █  ╚╩╝╚╝╚╝╚╝╚╝╩ ╩╚╝  █                             .
+        ................................█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█..............................\n""")
+        
+        
+        
+        
+        st.markdown("<h4 style='text-align: center; color: white;'>EXPERIENCE THE BEST OF BAKING WITH CRUMBS!! WE'LL BAKE YOUR DAY :)</h4>", unsafe_allow_html=True)
+        
+        
+
+        st.text("Continue As:")
+
+        col1, col2   = st.columns(2)
 
     # Add a button to the first column
         with col1:
@@ -38,7 +70,6 @@ class Crumbs:
         
         elif button2:
             i=1
-            
             
         with st.sidebar:
             app = option_menu(
@@ -82,6 +113,6 @@ crumbs.add_application("Customer", Customer_app)
 
 # Run the Crumbs app
 crumbs.run()
-
+m.close()
     
 

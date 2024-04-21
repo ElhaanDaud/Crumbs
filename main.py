@@ -1,9 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-from Manager import app as Manager_app
-from Customer import app as Customer_app
+import Customer, Manager, home, creds 
 import mysql.connector as ms
-import creds 
 import random
 
 
@@ -13,43 +11,23 @@ mc=m.cursor()
 
 st.set_page_config(
     page_title="Crumbs",
-    page_icon="🍪"          
+    page_icon="🍪",   
     )
 
-class Crumbs:
-    def __init__(self):
-        self.app=[]
+class MultiApp:
 
-    def add_application(self,title,function):
-        self.app.append({
-            "title":title,
-            "function" : function
+    def __init__(self):
+        self.apps = []
+
+    def add_app(self, title, func):
+
+        self.apps.append({
+            "title": title,
+            "function": func
         })
 
-    def run(self):
-
-        st.markdown("<h1 style='text-align: center; color: white;'>🍪 CRUMBS 🍪</h1>", unsafe_allow_html=True)
-            
+    def run():
         
-        st.text("""        
-        ...................................▄▀▀▀▄▄▄▄▄▄▄▀▀▀▄..................................    
-        .                                  █▒▒░░░░░░░░░▒▒█                                 .
-        .                                   █░░█░░░░░█░░█                                  .
-        .                                ▄▄  █░░░▀█▀░░░█  ▄▄                               .
-        .                               █░░█ ▀▄░░░░░░░▄▀ █░░█                              .
-        .                               █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█                             .
-        .                               █  ╦ ╦╔╗╦ ╔╗╔╗╔╦╗╔╗  █                             .
-        .                               █  ║║║╠ ║ ║ ║║║║║╠   █                             .
-        .                               █  ╚╩╝╚╝╚╝╚╝╚╝╩ ╩╚╝  █                             .
-        ................................█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█..............................\n""")
-        
-        
-        
-        
-        st.markdown("<h4 style='text-align: center; color: white;'>EXPERIENCE THE BEST OF BAKING WITH CRUMBS!! WE'LL BAKE YOUR DAY :)</h4>", unsafe_allow_html=True)
-        
-        
-
         st.text("Continue As:")
 
         col1, col2   = st.columns([6,1])
@@ -62,17 +40,15 @@ class Crumbs:
         with col2:
             button2 = st.button("Manager")
 
-    
-        
         i=0
 
         if button1:
             i=1
+            app="Customer"
 
         elif button2:
             i=2
-        
-        
+            app = "Manager"
             
         with st.sidebar:
             app = option_menu(
@@ -81,52 +57,45 @@ class Crumbs:
                 icons=['house-fill','person-lines-fill','person-circle'],
                 menu_icon='menu-app',  
                 default_index=i,
-                styles={"container":{
-                        "padding":"10",
-                        "background-colour":"grey"
+                styles={"container": {
+                    "padding": "5!important",
+                    "background-color":'black'
                     },
-                    "icon":{
-                        "color":"white",
-                        "font-size":"20px"
-                        },
-                    "nav-link":{
-                        "color":"white",
-                        "font-size":"20px",
-                        "text-align":"left",
-                        "--hover-color":"black"
-                        },
-                    "nav-link-selected":{
-                        "background-color":"4a4a49",
-                        },})
+            "icon": {
+                "color": "white", 
+                "font-size": "23px"
+                }, 
+            "nav-link": {
+                "color":"white",
+                "font-size": "20px", 
+                "text-align": "left", 
+                "margin":"0px", 
+                "--hover-color": "blue"},
+
+            "nav-link-selected": {
+                "background-color": "#02ab21"
+                },})
         
         tidbits=['Enjoy the best of baking with crumbs!','Every flavour has a story to tell!','Count the memories not the calories!','We bet you will keep coming back!','A wonderful gift for your loved ones!','Celebrate with crumbs!']
         niceday=['Hope you have a good day :)','Stay hydrated :)','Just in case no one has told you already... you are amazing :)','Be a rainbow in someones storm :)','Perfection is accepting your imperfections :)']
         
-        if app == "Home ":
+        if app == "Home":
             i=0
+            home.app()
 
-        if app == "Customer" or button1:
-            st.write(random.choice(tidbits))
-            Customer_app()
+        if app == "Customer":
+            yapping=random.choice(tidbits)
+            st.text(yapping)
+            Customer.app()
             
 
-        if app == "Manager" or button2:
-            st.write(random.choice(niceday))
-            Manager_app()
-            
-        
+        if app == "Manager":
+            yapping=random.choice(niceday)
+            st.text(yapping)
+            Manager.app()
 
-        
+    run()
 
 
-crumbs = Crumbs()
-
-# Add applications to the Crumbs instance
-crumbs.add_application("Manager", Manager_app)
-crumbs.add_application("Customer", Customer_app)
-
-# Run the Crumbs app
-crumbs.run()
-m.close()
     
 

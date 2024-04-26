@@ -10,64 +10,48 @@ tidbits=['Enjoy the best of baking with crumbs!','Every flavour has a story to t
 niceday=['Hope you have a good day :)','Stay hydrated :)','Just in case no one has told you already... you are amazing :)','Be a rainbow in someones storm :)','Perfection is accepting your imperfections :)']
 #----------------------------------------------------------------------------------------------------------------------------
 def printcakes():
-    st.write('_'*50)
     st.write("Here is the menu for cakes:")
-    st.write('-'*50)
-    st.write('ID \t','NAME \t\t\t','PRICE_1kg \t')
     mc.execute("select * from cakes;")
     cakes=mc.fetchall()
     for i in cakes:
         l=26-len(i[1])
         i1=i[1]+' '*l
         st.write (i[0],'\t',i1,i[2])
-    st.write('_'*50)
-    st.write('\n')
+    
 def printbeverages():
-    st.write('_'*50)
     st.write("Here is the menu for beverages:")
-    st.write('-'*50)
-    st.write('ID \t','NAME \t\t\t','PRICE_MEDIUM \t')
     mc.execute("select * from beverages;")
     beverages=mc.fetchall()
     for i in beverages:
         l=29-len(i[1])
         i1=i[1]+' '*l
         st.write (i[0],'\t',i1,i[2])
-    st.write('_'*50)
-    st.write('\n')
+    
 def printcookies():
-    st.write('_'*50)
     st.write("Here is the menu for cookies:")
-    st.write('-'*50)
-    st.write('ID \t','NAME \t\t\t','PRICE_500g \t')
     mc.execute("select * from cookies;")
     cookies=mc.fetchall()
     for i in cookies:
         l=26-len(i[1])
         i1=i[1]+' '*l
         st.write (i[0],'\t',i1,i[2])
-    st.write('_'*50)
-    st.write('\n')
+    
+    
 def printpastries():
-    st.write('_'*50)
     st.write("Here is the menu for pastries:")
-    st.write('-'*50)
-    st.write('ID \t','NAME \t\t\t','PRICE_PERPIECE\t')
-    mc.execute("select * from pastries;")
-    pastries=mc.fetchall()
-    for i in pastries:
-        l=29-len(i[1])
-        i1=i[1]+' '*l
-        st.write (i[0],'\t',i1,i[2])
-    st.write('_'*50)
-    st.write('\n')
+    mc.execute("SELECT * FROM pastries;")
+    pastries = mc.fetchall()
+    
+    for pastry in pastries:
+        name_length = 29 - len(pastry[1])
+        padded_name = pastry[1] + ' ' * name_length
+        st.write(pastry[0], '\t', padded_name, pastry[2])
+    
+  
 def printmenu():
-    mc = ms.cursor()
     sql_query = "SELECT * FROM menu;"
     mc.execute(sql_query)
     data = mc.fetchall()
-
-    # Display the list of categories using DataFrame
     st.write("Here is the list of categories:")
     for row in data:
         st.write(row)
@@ -75,7 +59,7 @@ def printmenu():
 
 def app():
     
-    with st.form("personal_details_form"):
+    with st.form("personal_details_form",clear_on_submit=True):
         st.write("Enter your personal details")
         
         name = st.text_input("Name", key="name_input").lower().strip()

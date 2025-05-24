@@ -1,277 +1,294 @@
 import streamlit as st
 import creds 
 import mysql.connector as ms
-m=ms.connect(host=creds.host, user=creds.user, password=creds.password, database=creds.database) 
-mc=m.cursor()
+import pandas as pd # Added for dataframe operations
 
+# Database connection removed from here
+# m = ms.connect(host=creds.host, user=creds.user, password=creds.password, database=creds.database) 
+# mc = m.cursor(buffered=True) 
 
-def printemployee():
-    print('_'*50)
-    print("Here is the employee table:")
-    print('-'*50)
-    print('ID \t','NAME \t\t','SALARY \t', 'DEPARTMENT')
-    mc.execute("select * from employee;")
-    employee=mc.fetchall()
-    for i in employee:
-        l=15-len(i[1])
-        i1=i[1]+' '*l
-        i2=str(i[2])+' '*8
-        print (i[0],'\t',i1,i2,'\t',i[3])
-    print('_'*50)
-    print('\n')
-def printadmin():
-    print('_'*50)
-    print("Here is the admin table:")
-    print('-'*50)
-    print('ID \t','PASSWORD')
-    mc.execute("select * from admin;")
-    admin=mc.fetchall()
-    for i in admin:
-        print(i[0],'\t',i[1])
-    print('_'*50)
-    print('\n')
-def printmenu():
-    print('_'*50)
-    print("Here is the list of categories:")
-    mc.execute("select * from menu;")
-    menu=mc.fetchall()
-    print('-'*50)
-    print ('ID \t', 'NAME \t')
-    for i in menu:
-        print (i[0],'\t', i[1] )
-        print('_'*50)
-        print('\n')
-def printpersonal():
-    print('_'*55)
-    print("Here are the personal details:")
-    mc.execute("select * from personal_details;")
-    p=mc.fetchall()
-    print('-'*55)
-    print ('ID \t', 'NAME \t\t', 'PHONE_NO \t', 'EMAIL_ID')
-    for i in p:
-        l=7-len(i[1])
-        i1=i[1]+' '*l
-        i2=str(i[2])+' '*8
-        print (i[0],'\t', i1,'\t', i[2],'\t', i[3] )
-    print('_'*55)
-    print('\n')
-#----------------------------------------------------------------------------------------------------------------------------
+# Helper function to get table data, now accepts cursor
+def get_table_data(mc_main, table_name): # Accept cursor
+    try:
+        mc_main.execute(f"SELECT * FROM {table_name};")
+        data = mc_main.fetchall()
+        columns = [i[0] for i in mc_main.description]
+        return pd.DataFrame(data, columns=columns)
+    except ms.Error as err:
+        st.error(f"Error fetching data from {table_name}: {err}")
+        return pd.DataFrame()
 
+def app(db_cursor, db_connection): # Accept cursor and connection
+    mc = db_cursor # Use the passed cursor
+    m = db_connection # Use the passed connection
+
+    st.title("Manager Dashboard")
+
+    # Initialize session state for login
+    if 'manager_logged_in' not in st.session_state:
+        st.session_state['manager_logged_in'] = False
+    if 'current_view' not in st.session_state:
+        st.session_state['current_view'] = 'login' # Default view
+
+    # Login Section
+    if not st.session_state['manager_logged_in']:
+        st.subheader("Manager Login")
+        with st.form("login_form"):
+            manager_id = st.text_input("Manager ID")
+            password = st.text_input("Password", type="password")
+            login_button = st.form_submit_button("Login")
+
+            if login_button:
+                try:
+                    # Secure way to query: use placeholders
+                    query = "SELECT * FROM admin WHERE id = %s AND password = %s"
+                    mc.execute(query, (manager_id, password)) # Use passed mc
+                    result = mc.fetchone() # Use fetchone as ID should be unique
+
+                    if result:
+                        st.session_state['manager_logged_in'] = True
+                        st.session_state['manager_id'] = manager_id
+                        st.session_state['current_view'] = 'main_menu' # Navigate to main menu
+                        st.experimental_rerun() # Rerun to reflect login state
+                    else:
+                        st.error("Invalid Manager ID or Password.")
+                except ms.Error as err:
+                    st.error(f"Database error during login: {err}")
+                except Exception as e:
+                    st.error(f"An unexpected error occurred: {e}")
     
-
-def app():
-    st.title("Manager")
-    def login():
-        c=0
-        while c==0:
-            a=input("Enter the ID_")
-            b=input("Enter the Password_")
-            mc.execute("select * from admin where id ='"+a+"' and password = '"+b+"'");
-            L = mc.fetchall()
-            if len(L) == 0:
-                print("No user record found, Please try again")
-            else:
-                c=1
-
-    def viewrecords():
-        print('_'*50)
-        print("The tables that we have are:")
-        print('-'*50)
-        mc.execute("show tables")
-        l1 = mc.fetchall()
-        count = 0
-        print ('ID \t TABLE NAME')
-        for i in l1:
-            if i[0] not in ('admin','c_details'):
-                count+=1
-                print(count ,'\t',i[0].capitalize())
-        print('_'*50)
-        print ("\n")
-        table='?'
-        while table not in ('beverages','cakes','cookies','employee','menu','pastries','personal_details'):
-            table=(input("Enter the name of table you want to be displayed_").lower().strip())
-        print("\n")
-        if table == 'beverages':
-            printbeverages()
-        elif table == 'cakes' :
-            printcakes()
-        elif table == 'cookies':
-            printcookies()
-        elif table == 'employee':
-            printemployee()
-        elif table == 'menu':
-            printmenu()
-        elif table == 'pastries':
-            printpastries()
-        elif table == 'personal_details':
-            printpersonal()
-
-    def deleterecords():
-        print('_'*50)
-        print("The tables that we have are:")
-        print('-'*50)
-        mc.execute("show tables")
-        l1 = mc.fetchall()
-        count = 0
-        print ('ID \t TABLE NAME')
-
-        for i in l1:
-            if i[0] not in ('admin','c_details','menu'):
-                count+=1
-                print(count ,'\t',i[0].capitalize())
-        print('_'*50)
-        print ("\n")
-        table=' '
-        while table not in ('beverages','cakes','cookies','pastries','employee','personal_details'):
-            table=(input("Enter the table name whose record you want to delete_").lower().strip())
-        if table=='beverages':
-            printbeverages()
-        if table=='cakes':
-            printcakes()
-        if table=='cookies':
-            printcookies()
-        if table=='pastries':
-            printpastries()
-        if table=='employee':
-            printemployee()
-        if table=='personal_details':
-            printpersonal()
-        n=(input("Enter the ID of the record you want to delete_").upper().strip())
-        mc.execute("delete from "+table+" where ID='"+n+"'")
-        m.commit()
-        print("Record deleted")
+    # Main Application Area - Visible after login
+    if st.session_state['manager_logged_in']:
+        st.sidebar.success(f"Logged in as {st.session_state.get('manager_id', 'Manager')}")
         
-    def updaterecords():
-        print('_'*50)
-        print("The tables that we have are:")
-        print('-'*50)
-        mc.execute("show tables")
-        l1 = mc.fetchall()
-        count = 0
-        print ('ID \t TABLE NAME')
-        for i in l1:
-            if i[0] not in ('c_details','menu'):
-                count+=1
-                print(count ,'\t',i[0].capitalize())
-        print('_'*50)
-        print ("\n")
-        table=' '
-        while table not in ('admin','beverages','cakes','cookies','employee','pastries','personal_details'):
-            table=(input("Enter the table name whose data you want to update_").strip().lower())
-        if table=='beverages':
-            printbeverages()
-        if table=='cakes':
-            printcakes()
-        if table=='cookies':
-            printcookies()
-        if table=='pastries':
-            printpastries()
-        if table=='employee':
-            printemployee()
-        if table=='admin':
-            printadmin()
-        if table=='personal_details':
-            printpersonal()
-        n=(input("ID of the record you want to edit_").upper().strip())
-        field=(input("Field to be updated_").lower().strip())
-        entry=input("New entry_")
-        mc.execute("Update "+table+" set "+field+" = '"+entry+"' where id ='"+n+"'")
-        m.commit()
-        print("The field has been updated")
+        # Navigation
+        menu_options = ["View Records", "Insert Records", "Update Records", "Delete Records", "Logout"]
+        st.session_state.current_view = st.sidebar.radio("Navigation", menu_options, key="navigation_choice")
+
+        if st.session_state.current_view == "Logout":
+            st.session_state['manager_logged_in'] = False
+            st.session_state['manager_id'] = None
+            st.session_state['current_view'] = 'login' # Reset to login view
+            st.experimental_rerun()
         
-    def insertrecords():
-        print('_'*50)
-        print("The tables that we have are:")
-        print('-'*50)
-        mc.execute("show tables")
-        l1 = mc.fetchall()
-        count = 0
-        print ('ID \t TABLE NAME')
-        for i in l1:
-            if i[0] not in ('c_details'):
-                count+=1
-                print(count ,'\t',i[0].capitalize())
-        print('_'*50)
-        print ("\n")
-        table=' '
-        while table not in ('beverages','cakes','cookies','pastries','employee','personal_details','admin','menu'):
-            table=(input("Enter the table name into which you want to enter new record_").strip().lower())
-        if table=='beverages':
-            printbeverages()
-        elif table=='cakes':
-            printcakes()
-        elif table=='cookies':
-            printcookies()
-        elif table=='pastries':
-            printpastries()
-        elif table=='employee':
-            printemployee()
-        elif table=='admin':
-            printadmin()
-        elif table=='personal_details':
-            printpersonal()
-        elif table=='menu':
-            printmenu()
-        mc.execute("desc "+table+" ")
-        desc=mc.fetchall()
-        field=[]
-        value=()
-        s=[]
-        for i in desc:
-            field.append(i[0])
-        for i in desc:
-            print("Column",i[0])
-            v=input("Enter value_")
-            if v.isnumeric():
-                v=int(v)
-            else:
-                v=v.capitalize().strip()
-            value+=(v,)
-            s.append('%s')
-        fields='('+','.join(field)+')'
-        s2='('+','.join(s)+')'
-        sql= "INSERT INTO "+table+" "+fields+" values "+s2+" "
-        mc.execute(sql,value)
-        m.commit()
-        print("Your record has been added")
-    login()
-    cont='yes'
-    while cont.lower() in ('yes','y'):
-        print("""\nYou can choose from the below operation which you want to execute:
-1 View Records
-2 Delete Records
-3 Update Records
-4 Insert Records
-5 Exit""")
-        
-        choice=9
-        while choice not in (1,2,3,4,5):
-            choice = int(input("Enter your choice number_"))
-        if choice == 1:
-            viewrecords()
-        elif choice == 2:
-            deleterecords()
-        elif choice == 3:
-            updaterecords()
-        elif choice == 4:
-            insertrecords()
-        elif choice == 5:
-            cont='no'
-        if choice!=5:
-            c=' '
-            while c not in ('yes','y','no','n') :
-                c=(input("Do you want to continue? (yes/no)_").strip().lower())
-                cont=c
-    print('''
-                | ✿✿✿══✿✿══✿✿══✿✿✿  |
-                | ═══════════(\/)══════════ |
-                | ══════════(◕.◕)══════════ |
-                | ══════════() ()══════════ |
-                |  / \ / \ / \ / \ / \ / \  |
-                | ( L | O | G | G | E | D | |
-                |  \_/ \_/ \_/ \_/ \_/ \_/  |
-                |         _   _   _         |
-                |        / \ / \ / \        |
-                |       ( O | U | T |       |
-                |        \_/ \_/ \_/        |''')
-#----------------------------------------------------------------------------------------------------------------------------
+        st.header(st.session_state.current_view) # Display the current selected view as header
+
+        if st.session_state.current_view == "View Records":
+            st.subheader("View Table Records")
+            # Tables allowed for viewing by manager
+            viewable_tables = ['beverages', 'cakes', 'cookies', 'employee', 'menu', 'pastries', 'personal_details']
+            
+            selected_table_to_view = st.selectbox("Select a table to view:", options=viewable_tables, key="view_table_select")
+
+            if selected_table_to_view:
+                st.write(f"Displaying records for table: **{selected_table_to_view}**")
+                df = get_table_data(mc, selected_table_to_view) # Pass cursor
+                if not df.empty:
+                    st.dataframe(df)
+                else:
+                    st.info(f"No data found in {selected_table_to_view} or table is empty.")
+
+        elif st.session_state.current_view == "Insert Records":
+            st.subheader("Insert New Record")
+            insertable_tables = ['beverages', 'cakes', 'cookies', 'employee', 'menu', 'pastries', 'personal_details', 'admin']
+            selected_table_to_insert = st.selectbox("Select a table to insert into:", options=insertable_tables, key="insert_table_select")
+
+            if selected_table_to_insert:
+                st.write(f"Inserting into: **{selected_table_to_insert}**")
+                try:
+                    mc.execute(f"DESCRIBE {selected_table_to_insert};") # Use passed mc
+                    schema = mc.fetchall()
+                    
+                    with st.form(f"insert_form_{selected_table_to_insert}"):
+                        new_record_data = {}
+                        for col_name, col_type, _, _, _, _ in schema:
+                            # Basic type handling for input fields
+                            if "int" in col_type:
+                                new_record_data[col_name] = st.number_input(f"{col_name} ({col_type})", step=1, value=0)
+                            elif "float" in col_type or "double" in col_type or "decimal" in col_type:
+                                new_record_data[col_name] = st.number_input(f"{col_name} ({col_type})", value=0.0)
+                            elif "date" in col_type :
+                                 new_record_data[col_name] = str(st.date_input(f"{col_name} ({col_type})"))
+                            elif "time" in col_type or "datetime" in col_type or "timestamp" in col_type:
+                                 new_record_data[col_name] = str(st.time_input(f"{col_name} ({col_type})"))
+                            else: # Default to text input for varchar, text, etc.
+                                new_record_data[col_name] = st.text_input(f"{col_name} ({col_type})")
+                        
+                        submit_insert = st.form_submit_button("Insert Record")
+
+                        if submit_insert:
+                            cols = ', '.join(new_record_data.keys())
+                            placeholders = ', '.join(['%s'] * len(new_record_data))
+                            sql = f"INSERT INTO {selected_table_to_insert} ({cols}) VALUES ({placeholders})"
+                            
+                            values = []
+                            for col_name, _, _, _, _, _ in schema: # Iterate in schema order
+                                value = new_record_data[col_name]
+                                # Attempt to convert to int if original type was int and value is string from text_input
+                                # This is a basic heuristic; more robust type checking might be needed
+                                if "int" in schema[[s[0] for s in schema].index(col_name)][1] and isinstance(value, str):
+                                    try:
+                                        values.append(int(value))
+                                    except ValueError:
+                                        values.append(value) # Keep as string if conversion fails, DB might handle or error
+                                else:
+                                     values.append(value)
+                            
+                            try:
+                                mc.execute(sql, tuple(values)) # Use passed mc
+                                m.commit() # Use passed m for commit
+                                st.success(f"Record inserted successfully into {selected_table_to_insert}!")
+                            except ms.Error as err:
+                                st.error(f"Database error on insert: {err}")
+                            except Exception as e:
+                                st.error(f"An unexpected error occurred during insert: {e}")
+                except ms.Error as err:
+                    st.error(f"Error fetching schema for {selected_table_to_insert}: {err}")
+
+        elif st.session_state.current_view == "Update Records":
+            st.subheader("Update Existing Record")
+            updatable_tables = ['admin', 'beverages', 'cakes', 'cookies', 'employee', 'pastries', 'personal_details']
+            selected_table_to_update = st.selectbox("Select a table to update:", options=updatable_tables, key="update_table_select")
+
+            if selected_table_to_update:
+                st.write(f"Updating records in: **{selected_table_to_update}**")
+                df = get_table_data(mc, selected_table_to_update) # Pass cursor
+                if not df.empty:
+                    st.dataframe(df)
+                else:
+                    st.info(f"No data found in {selected_table_to_update} or table is empty.")
+                    # Optionally, prevent update form if table is empty, though not strictly necessary
+                
+                try:
+                    mc.execute(f"DESCRIBE {selected_table_to_update};") # Use passed mc
+                    schema = mc.fetchall()
+                    column_names = [col[0] for col in schema]
+                    
+                    with st.form(f"update_form_{selected_table_to_update}"):
+                        record_id_to_update = st.text_input("Enter ID of the record to update:")
+                        column_to_update = st.selectbox("Select column to update:", options=column_names, key="update_column_select")
+                        new_value = st.text_input(f"Enter new value for {column_to_update}:")
+                        
+                        submit_update = st.form_submit_button("Update Record")
+
+                        if submit_update:
+                            if not record_id_to_update or not column_to_update:
+                                st.warning("Please provide Record ID and select a column to update.")
+                            else:
+                                # Assuming 'ID' or 'id' is the primary key column name.
+                                # This might need to be more robust if PK names vary wildly and aren't consistently 'ID' or 'id'.
+                                # For most tables here, it's 'ID'. For 'admin', it's 'id'.
+                                pk_column = 'id' if selected_table_to_update == 'admin' else 'ID'
+
+                                sql = f"UPDATE {selected_table_to_update} SET {column_to_update} = %s WHERE {pk_column} = %s"
+                                try:
+                                    # Attempt to convert new_value to the correct type based on schema (simplified)
+                                    target_col_type = ""
+                                    for col_name, col_type, _, _, _, _ in schema:
+                                        if col_name == column_to_update:
+                                            target_col_type = col_type
+                                            break
+                                    
+                                    actual_value = new_value
+                                    if "int" in target_col_type:
+                                        actual_value = int(new_value)
+                                    elif "float" in target_col_type or "double" in target_col_type or "decimal" in target_col_type:
+                                        actual_value = float(new_value)
+                                    # Dates and times would need specific parsing from string if not using st.date/time_input
+                                    
+                                    mc.execute(sql, (actual_value, record_id_to_update)) # Use passed mc
+                                    m.commit() # Use passed m for commit
+                                    if mc.rowcount > 0:
+                                        st.success(f"Record {record_id_to_update} in {selected_table_to_update} updated successfully!")
+                                        # Refresh data view
+                                        st.experimental_rerun()
+                                    else:
+                                        st.warning(f"No record found with ID {record_id_to_update} in {selected_table_to_update}, or value was the same.")
+                                except ms.Error as err:
+                                    st.error(f"Database error on update: {err}")
+                                except ValueError:
+                                    st.error(f"Invalid value format for column {column_to_update}. Expected type: {target_col_type}")
+                                except Exception as e:
+                                    st.error(f"An unexpected error occurred during update: {e}")
+                except ms.Error as err:
+                    st.error(f"Error fetching schema for {selected_table_to_update}: {err}")
+
+        elif st.session_state.current_view == "Delete Records":
+            st.subheader("Delete Record from Table")
+            deletable_tables = ['beverages', 'cakes', 'cookies', 'employee', 'pastries', 'personal_details'] # Excludes admin, menu, c_details
+            
+            if 'record_to_delete_id' not in st.session_state:
+                st.session_state.record_to_delete_id = None
+            if 'table_to_delete_from' not in st.session_state:
+                st.session_state.table_to_delete_from = None
+
+            selected_table_to_delete = st.selectbox("Select a table to delete from:", options=deletable_tables, key="delete_table_select")
+
+            if selected_table_to_delete:
+                st.write(f"Deleting records from: **{selected_table_to_delete}**")
+                df = get_table_data(mc, selected_table_to_delete) # Pass cursor
+                if not df.empty:
+                    st.dataframe(df)
+                else:
+                    st.info(f"No data found in {selected_table_to_delete} or table is empty.")
+                
+                if st.session_state.record_to_delete_id is None:
+                    with st.form(f"delete_form_{selected_table_to_delete}"):
+                        record_id_to_delete = st.text_input("Enter ID of the record to delete:")
+                        submit_select_record_for_deletion = st.form_submit_button("Select Record for Deletion")
+
+                        if submit_select_record_for_deletion:
+                            if not record_id_to_delete:
+                                st.warning("Please enter the ID of the record to delete.")
+                            else:
+                                st.session_state.record_to_delete_id = record_id_to_delete
+                                st.session_state.table_to_delete_from = selected_table_to_delete
+                                st.experimental_rerun() # Rerun to show confirmation
+                
+                if st.session_state.record_to_delete_id and st.session_state.table_to_delete_from == selected_table_to_delete:
+                    st.warning(f"Are you sure you want to delete record with ID '{st.session_state.record_to_delete_id}' from table '{selected_table_to_delete}'?")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("Confirm Deletion"):
+                            try:
+                                # Assuming 'ID' is the primary key for these tables.
+                                pk_column = 'ID' 
+                                sql = f"DELETE FROM {selected_table_to_delete} WHERE {pk_column} = %s"
+                                mc.execute(sql, (st.session_state.record_to_delete_id,)) # Use passed mc
+                                m.commit() # Use passed m for commit
+
+                                if mc.rowcount > 0:
+                                    st.success(f"Record '{st.session_state.record_to_delete_id}' deleted successfully from {selected_table_to_delete}!")
+                                else:
+                                    st.warning(f"No record found with ID '{st.session_state.record_to_delete_id}' in {selected_table_to_delete}.")
+                                
+                                # Reset state and rerun
+                                st.session_state.record_to_delete_id = None
+                                st.session_state.table_to_delete_from = None
+                                st.experimental_rerun()
+                            except ms.Error as err:
+                                st.error(f"Database error on delete: {err}")
+                                st.session_state.record_to_delete_id = None # Reset on error too
+                                st.session_state.table_to_delete_from = None
+                                st.experimental_rerun()
+                            except Exception as e:
+                                st.error(f"An unexpected error occurred during delete: {e}")
+                                st.session_state.record_to_delete_id = None
+                                st.session_state.table_to_delete_from = None
+                                st.experimental_rerun()
+                    with col2:
+                        if st.button("Cancel"):
+                            st.session_state.record_to_delete_id = None
+                            st.session_state.table_to_delete_from = None
+                            st.experimental_rerun()
+
+    elif st.session_state.current_view != 'login': # If not logged in and not in login view, redirect to login
+        st.session_state.current_view = 'login'
+        st.experimental_rerun()
+
+# Note: The printX functions (printemployee, printadmin etc.) from the original file 
+# are not directly used here yet. They will be replaced or adapted for Streamlit display
+# in the subsequent steps (e.g., inside View Records, or by using get_table_data).
+# The functions like viewrecords, deleterecords, updaterecords, insertrecords from the original app()
+# will be rebuilt using Streamlit components in their respective sections.

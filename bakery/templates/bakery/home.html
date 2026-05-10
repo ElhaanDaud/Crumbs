@@ -1,6 +1,37 @@
 {% extends 'bakery/base.html' %}
+{% load static %}
 {% block title %}Crumbs Bakery — Home{% endblock %}
 {% block content %}
-<h1>Welcome to Crumbs Bakery</h1>
-<p>Freshly baked goods made with love.</p>
+<div class="text-center">
+    <h1 class="display-3 mt-4">🍪 CRUMBS 🍪</h1>
+    <pre class="mt-4" style="font-family: monospace; font-size: 0.8rem; line-height: 1.2; color: #8B4513;">
+                      .^.
+                     /   \
+                    /     \
+                   /       \
+                  /         \
+                 /           \
+                /             \
+               /               \
+              /                 \
+             /                   \
+            /                     \
+           /                       \
+          /                         \
+         /                           \
+        /                             \
+       /                               \
+      /_________________________________\
+      |     ___   ___                   |
+      |    |   | |   |     C R U M B S |
+      |    |___| |___|                 |
+      |   ___________________          |
+      |  |  B A K E R Y    |          |
+      |  |_________________|          |
+      |                               |
+      |_______________________________|
+    </pre>
+    <p class="lead mt-4">EXPERIENCE THE BEST OF BAKING WITH CRUMBS!! WE'LL BAKE YOUR DAY :)</p>
+    <a href="{% url 'bakery:menu' %}" class="btn btn-primary btn-lg mt-3">Explore Our Menu</a>
+</div>
 {% endblock %}

@@ -1,6 +1,54 @@
 {% extends 'bakery/base.html' %}
 {% block title %}Cart — Crumbs Bakery{% endblock %}
 {% block content %}
-<h1>Your Cart</h1>
-<p>Your cart is currently empty.</p>
+<h1 class="mb-4">Your Cart</h1>
+
+{% if cart %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Subtotal</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, item in cart.items %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.category_id }}</td>
+                <td>₹{{ item.price }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{% widthratio item.price 1 item.quantity %}</td>
+                <td>
+                    <a href="{% url 'bakery:remove_from_cart' key %}" class="btn btn-sm btn-danger">
+                        Remove
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="table-active">
+                <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
+                <td colspan="2"><strong>₹{{ subtotal|floatformat:2 }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="d-flex justify-content-between mt-3">
+    <a href="{% url 'bakery:menu' %}" class="btn btn-outline-primary">Continue Shopping</a>
+    <a href="{% url 'bakery:checkout' %}" class="btn btn-success btn-lg">Proceed to Checkout</a>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <p class="lead">Your cart is currently empty.</p>
+    <a href="{% url 'bakery:menu' %}" class="btn btn-primary">Browse Menu</a>
+</div>
+{% endif %}
 {% endblock %}

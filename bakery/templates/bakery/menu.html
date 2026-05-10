@@ -1,6 +1,37 @@
 {% extends 'bakery/base.html' %}
 {% block title %}Menu — Crumbs Bakery{% endblock %}
 {% block content %}
-<h1>Our Menu</h1>
-<p>Browse our selection of cakes, beverages, cookies, and pastries.</p>
+<h1 class="mb-4">Our Menu</h1>
+
+{% if tidbit %}
+<div class="alert alert-info">
+    {{ tidbit }}
+</div>
+{% endif %}
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+    {% for cat in categories %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title">{{ cat.name }}</h5>
+                <p class="card-text text-muted">{{ cat.id }}</p>
+                <a href="{% url 'bakery:category_items' cat.id %}" class="btn btn-outline-primary">
+                    View {{ cat.name }}
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p class="text-muted">No categories available yet.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% if niceday %}
+<div class="alert alert-success mt-4">
+    {{ niceday }}
+</div>
+{% endif %}
 {% endblock %}

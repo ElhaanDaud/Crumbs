@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: crumbs
+      POSTGRES_USER: crumbs
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crumbs"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: "False"
+      DJANGO_SETTINGS_MODULE: crumbs_project.settings.prod
+      DJANGO_DB_URL: postgres://crumbs:${DB_PASSWORD}@db:5432/crumbs
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  pgdata:

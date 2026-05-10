@@ -29,4 +29,5 @@ temp.py
 
 # OS
 .DS_Store
+.sisyphus 
 Thumbs.db

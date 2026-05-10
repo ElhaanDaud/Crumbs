@@ -1,0 +1,11 @@
+.venv/
+.venv
+.git/
+.git
+.env
+.DS_Store
+*.pyc
+__pycache__/
+.sisyphus/
+AGENTS.md
+README.md
